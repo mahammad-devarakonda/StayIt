@@ -1,3 +1,4 @@
+const { request } = require('express');
 const Connections = require('../model/Connections')
 const User = require('../model/User')
 const mongoose = require('mongoose')
@@ -40,13 +41,9 @@ const connectionResolver = {
     Mutation: {
         sendRequestConnection: async (_, { input }, context) => {
             try {
-                console.log(context);
-                
                 const fromUser = await User.findById(context.user.userId);
-                console.log(fromUser);
 
                 const toUser = await User.findById(input.toUser)
-                console.log(toUser);
 
                 const fromUserId = fromUser.id
                 const toUserId = toUser.id
@@ -82,7 +79,7 @@ const connectionResolver = {
                     console.log("A connection request has already been sent to this user.");
                     throw new Error("A connection request has already been sent to this user.")
                 }
-                const connectionRequest = await new Connections({
+                const connectionRequest = new Connections({
                     fromUser: fromUser._id,
                     toUser: toUser._id,
                     status,
@@ -104,28 +101,30 @@ const connectionResolver = {
                 return {
                     success: false,
                     message: error.message || "Failed to send connection request.",
+                    request: null,
                 };
             }
         },
 
 
         reviewRequestConnection: async (_, { requestedUser, status }, context) => {
-            try {
-                const logginUser = context.user.userId
-                const fromUser = requestedUser
-
+            try {                
+                const logginUser = context.user
+                const fromUser = requestedUser    
+         
                 const allowedStatus = ["accepted", "rejected"]
 
                 if (!allowedStatus.includes(status)) {
                     throw new Error("Invalid status request")
                 }
 
-                const result = await Connections.findOne({
-                    fromUser: new mongoose.Types.ObjectId(requestedUser),
-                    toUser: new mongoose.Types.ObjectId(logginUser),
-                    status: "interested",
-                });
+                console.log(logginUser.userId,fromUser);
 
+                const connectionResult = await Connections.findOne({
+                    fromUser: new mongoose.Types.ObjectId(requestedUser),
+                    toUser: new mongoose.Types.ObjectId(logginUser.userId)
+                }); 
+ 
                 if (!result) {
                     throw new Error("Connection Not found")
                 }
@@ -146,7 +145,8 @@ const connectionResolver = {
             } catch (error) {
                 return {
                     success: false,
-                    message: error.message || "Failed to send connection request.",
+                    message: error.message || "Failed to review connection request.",
+                    request: null,
                 };
             }
         }

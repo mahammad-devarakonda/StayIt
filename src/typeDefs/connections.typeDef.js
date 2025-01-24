@@ -24,11 +24,8 @@ const connectTypeDef = gql`
     type RequestResponse {
         success: Boolean!
         message: String!
-        toUser: User
-        status: String
-        timestamp: String
+        request: Request
     }
-
 
     type Mutation {
         sendRequestConnection(input: SendRequestInput):RequestResponse
