@@ -15,7 +15,7 @@ const userAuthMiddleware = (req) => {
     }
 
     try {
-        const decodedToken = jwt.verify(token, "Bahubali#01");
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         return decodedToken;
     } catch (error) {
         throw new Error("Invalid or expired token");

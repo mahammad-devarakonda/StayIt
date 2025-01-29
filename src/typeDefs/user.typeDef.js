@@ -8,9 +8,22 @@ const usertypeDef = gql`
         password:String!,
     }
 
+    type Post {
+        id:ID!,
+        content: String!
+        description:String
+        imageURL: String!
+    }
+
+    type UserPostsResponse {
+        user: User!
+        posts: [Post!]!
+    }
+
     type Query {
         users : [User],
         user(id:ID!): User
+        UserPosts: UserPostsResponse!
     }
 
     type AuthPayload {
@@ -18,9 +31,15 @@ const usertypeDef = gql`
         user: User!
     }
 
+    input AddPostInput {
+        content: String!
+        imageURL: String
+    }
+
     type Mutation {
         register(userName : String!, email:String!, password:String! ):AuthPayload
         login(email:String!,password:String!):AuthPayload
+        addPost(input:AddPostInput!): Post!
     }
 `
 

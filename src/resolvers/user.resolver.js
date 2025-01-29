@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const User=require('../model/User')
+const Post =require('../model/Posts')
+
 
 const userResolver={
     Query:{
@@ -19,6 +21,33 @@ const userResolver={
                 throw new Error("Error in fetching users")
             }
         },
+
+        UserPosts: async (_, __, context) => {
+
+            const userID = context.user.userId
+      
+            if (!userID) {
+              throw new Error('User is not authenticated');
+            }
+      
+            const user = await User.findById(userID)  // Populate the 'posts' field with actual post data
+      
+            if (!user) {
+              throw new Error('User not found');
+            }
+      
+            const posts = await Post.find({ userId: userID });
+      
+            return {
+              user: {
+                id: user._id,
+                userName: user.userName,
+                email: user.email
+              },
+              posts: posts,
+            }
+      
+          },
     },
 
 
@@ -40,7 +69,7 @@ const userResolver={
         
             await user.save(); // Ensure the user is saved properly.
             // Use the `user` object for the token
-            const token = jwt.sign({ user:user._id}, "Bahubali#01", { expiresIn: '1h' });
+            const token = jwt.sign({ user:user._id}, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.cookie('authToken', token, { httpOnly: true, sameSite: "lax" });
         
             return { token, user }; // Return the token and the created user
@@ -58,10 +87,40 @@ const userResolver={
             const valid = await bcrypt.compare(password, user.password);
             if (!valid) throw new Error("Please enter valid credentionals!");
 
-            const token = jwt.sign({ userId: user.id }, "Bahubali#01", { expiresIn: '1h' });
+            const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.cookie('authToken', token, { httpOnly: true, sameSite: "lax" });
             return { token, user }
         },
+
+
+        addPost: async (_, { input }, context) => {
+
+            const userID = context.user.userId
+      
+            if (!userID) {
+              throw new Error('User is not authenticated');
+            }
+      
+            const { content, imageURL } = input;
+      
+            console.log(input);
+      
+            const newPost = new Post({
+              content,
+              imageURL,
+              userId: userID,
+            });
+      
+            const savedPost = await newPost.save();
+      
+            const user = await User.findById(userID);
+            console.log(user);
+      
+            user.posts.push(savedPost._id);
+            await user.save();
+      
+            return savedPost;
+          },
     }
 }
 

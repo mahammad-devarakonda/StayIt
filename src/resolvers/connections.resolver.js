@@ -1,4 +1,3 @@
-const { request } = require('express');
 const Connections = require('../model/Connections')
 const User = require('../model/User')
 const mongoose = require('mongoose')
@@ -9,13 +8,10 @@ const connectionResolver = {
             console.log("Fetching connection requests");
 
             const loginUser=context?.user.userId
-            console.log(loginUser);
             
-
             const myRequest= await Connections.find({toUser:loginUser})
             .populate("fromUser", "id userName email") 
             .populate("toUser", "id userName email"); 
-            console.log(myRequest);
 
             const formattedRequests = myRequest.map((request) => ({
                 id: request._id.toString(),
@@ -118,8 +114,6 @@ const connectionResolver = {
                     throw new Error("Invalid status request")
                 }
 
-                console.log(logginUser.userId,fromUser);
-
                 const connectionResult = await Connections.findOne({
                     fromUser: new mongoose.Types.ObjectId(requestedUser),
                     toUser: new mongoose.Types.ObjectId(logginUser.userId)
@@ -149,7 +143,7 @@ const connectionResolver = {
                     request: null,
                 };
             }
-        }
+        },
     }
 }
 

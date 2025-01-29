@@ -5,10 +5,18 @@ const mergeResolvers = require('./resolvers/indexResolver')
 const mergeTypeDefs = require('./typeDefs/indextypeDef')
 const userAuthMiddleware = require('./middleWare/authMiddleware')
 const cookieParser = require('cookie-parser');
+require('dotenv').config();
 
 const startServer = async () => {
+
     const app = express()
-    const PORT = 3000;
+    const PORT = process.env.PORT;
+    const cors = require('cors');
+
+    app.use(cors({
+        origin: process.env.FRONTEND, // Allow the frontend's origin
+        credentials: true, // Allow sending cookies
+    }));
 
     app.use(express.json());
     app.use(cookieParser());
@@ -19,7 +27,8 @@ const startServer = async () => {
         context: ({ req, res }) => {
             const user = userAuthMiddleware(req)
             return { res, user }
-        },  
+        },
+        playground: true,
     })
 
     await server.start()

@@ -34,7 +34,6 @@ const connectTypeDef = gql`
 
     type Query {
         myRequests: [Request!]!
-
     }
 `
 
