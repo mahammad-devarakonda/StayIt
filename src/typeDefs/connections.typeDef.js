@@ -3,17 +3,18 @@ const { gql } = require('apollo-server-express');
 
 const connectTypeDef = gql`
 
+    type User {
+        id: ID!
+        userName: String!
+        email: String!
+    }
+
     type Request {
         id: ID!
         fromUser: User!
         toUser: User!
         status: String!
         timestamp: String!
-    }
-    type User {
-        id: ID!
-        userName: String!
-        email: String!
     }
 
     input SendRequestInput {

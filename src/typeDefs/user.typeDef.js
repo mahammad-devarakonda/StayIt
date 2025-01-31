@@ -20,10 +20,18 @@ const usertypeDef = gql`
         posts: [Post!]!
     }
 
+
+    type FeedUserResponce {
+        id: ID!
+        userName:String!
+        posts:[Post!]!
+    }
+
     type Query {
         users : [User],
         user(id:ID!): User
         UserPosts: UserPostsResponse!
+        feed:[FeedUserResponce!]!
     }
 
     type AuthPayload {

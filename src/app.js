@@ -21,6 +21,11 @@ const startServer = async () => {
     app.use(express.json());
     app.use(cookieParser());
 
+    app.use((req,res,next)=>{
+        console.log(req.body);
+        next()
+    })
+
     const server = new ApolloServer({
         typeDefs: mergeTypeDefs,
         resolvers: mergeResolvers,
