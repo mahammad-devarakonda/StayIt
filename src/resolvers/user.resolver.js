@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken')
 const User = require('../model/User')
 const Post = require('../model/Posts')
 
-
 const userResolver = {
   Query: {
     user: async () => {
@@ -46,13 +45,18 @@ const userResolver = {
         },
         posts: posts,
       }
-
     },
 
     feed: async (_, __, context) => {
       const loginUser = context?.user.userId;
 
-      const showFeed = await User.find({ userId: { $ne: loginUser } }, "userName,posts").populate("userName posts");
+      console.log(loginUser);
+      
+
+      const showFeed = await User.find({ _id: { $ne: loginUser } }, "userName,posts").populate("posts userName _id");
+
+      console.log(showFeed);
+      
       
       return showFeed.map(user => ({
         id: user._id.toString(),
