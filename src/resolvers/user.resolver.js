@@ -5,31 +5,46 @@ const Post = require('../model/Posts')
 
 const userResolver = {
   Query: {
-    user: async () => {
-      try {
-        await User.findById(id)
+    user: async (_,{id}) => {
 
+      console.log(id);
+      
+
+      try {
+        const user=await User.findById(id)
+        console.log(user);
+        
+        const posts = await Post.find({ userId: user });
+
+        console.log(posts);
+        
+
+        return {
+          user: {
+            id: user._id,
+            userName: user.userName,
+            email: user.email
+          },
+          posts: posts,
+        }
+        
       } catch (error) {
         throw new Error("No user Found")
       }
     },
-    users: async () => {
-      try {
-        return await User.find()
-      } catch (error) {
-        throw new Error("Error in fetching users")
-      }
-    },
+
+    
 
     UserPosts: async (_, __, context) => {
-
       const userID = context.user.userId
 
+      console.log(userID);
+      
       if (!userID) {
         throw new Error('User is not authenticated');
       }
 
-      const user = await User.findById(userID)  // Populate the 'posts' field with actual post data
+      const user = await User.findById(userID)  
 
       if (!user) {
         throw new Error('User not found');
@@ -50,14 +65,8 @@ const userResolver = {
     feed: async (_, __, context) => {
       const loginUser = context?.user.userId;
 
-      console.log(loginUser);
-      
-
       const showFeed = await User.find({ _id: { $ne: loginUser } }, "userName,posts").populate("posts userName _id");
 
-      console.log(showFeed);
-      
-      
       return showFeed.map(user => ({
         id: user._id.toString(),
         userName: user.userName, // Ensure userName is always returned

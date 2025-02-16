@@ -71,7 +71,7 @@ const connectionResolver = {
                 });
 
 
-                if (existingRequest) {
+                if (existingRequest) {  
                     console.log("A connection request has already been sent to this user.");
                     throw new Error("A connection request has already been sent to this user.")
                 }
