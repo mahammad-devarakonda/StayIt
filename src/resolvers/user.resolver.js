@@ -100,8 +100,6 @@ const userResolver = {
       return { token, user }; // Return the token and the created user
     },
 
-
-
     login: async (_, { email, password }, { res }) => {
 
       const user = await User.findOne({ email });
@@ -116,7 +114,6 @@ const userResolver = {
       res.cookie('authToken', token, { httpOnly: true, sameSite: "lax" });
       return { token, user }
     },
-
 
     addPost: async (_, { input }, context) => {
 
