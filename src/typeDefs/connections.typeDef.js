@@ -22,6 +22,11 @@ const connectTypeDef = gql`
         status: String!
     }
 
+    input ReviewRequest {
+        requestedUser: ID!
+        status: String!
+    }
+
     type RequestResponse {
         success: Boolean!
         message: String!
@@ -29,8 +34,8 @@ const connectTypeDef = gql`
     }
 
     type Mutation {
-        sendRequestConnection(input: SendRequestInput):RequestResponse
-        reviewRequestConnection(requestedUser: String!, status: String!): RequestResponse
+        sendRequestConnection(input: SendRequestInput!):RequestResponse
+        reviewRequestConnection(input: ReviewRequest!): RequestResponse
     }
 
     type Query {

@@ -6,13 +6,13 @@ const connectionResolver = {
     Query: {
         myRequests: async (_, __, context) => {
             console.log("Fetching connection requests");
-
-            const loginUser=context?.user.userId
-            
-            const myRequest= await Connections.find({toUser:loginUser})
-            .populate("fromUser", "id userName email") 
-            .populate("toUser", "id userName email"); 
-
+        
+            const loginUser = context?.user.userId;
+        
+            const myRequest = await Connections.find({ toUser: loginUser, status: "interested" })
+                .populate("fromUser", "id userName email")
+                .populate("toUser", "id userName email");
+        
             const formattedRequests = myRequest.map((request) => ({
                 id: request._id.toString(),
                 fromUser: {
@@ -29,10 +29,10 @@ const connectionResolver = {
                 createdAt: request.createdAt.toISOString(),
                 updatedAt: request.updatedAt.toISOString(),
             }));
-
+        
             return formattedRequests;
-
         }
+        
     },
     Mutation: {
         sendRequestConnection: async (_, { input }, context) => {
@@ -67,7 +67,8 @@ const connectionResolver = {
                         { fromUserId, toUserId },
                         { fromUserId: toUserId },
                         { toUserId: fromUserId }
-                    ]
+                    ],
+                    status: "interested"
                 });
 
 
@@ -102,48 +103,65 @@ const connectionResolver = {
             }
         },
 
-
-        reviewRequestConnection: async (_, { requestedUser, status }, context) => {
+       reviewRequestConnection : async (_, { input }, context) => {
             try {                
-                const logginUser = context.user
-                const fromUser = requestedUser    
-         
-                const allowedStatus = ["accepted", "rejected"]
-
+                if (!context.user) {
+                    throw new Error("Unauthorized: Please log in.");
+                }
+        
+                const { requestedUser, status } = input;
+                const loggedInUser = context.user;
+        
+                const allowedStatus = ["accepted", "rejected"];
                 if (!allowedStatus.includes(status)) {
-                    throw new Error("Invalid status request")
+                    throw new Error("Invalid status request.");
                 }
-
+        
+                // Find connection in either direction
                 const connectionResult = await Connections.findOne({
-                    fromUser: new mongoose.Types.ObjectId(requestedUser),
-                    toUser: new mongoose.Types.ObjectId(logginUser.userId)
-                }); 
- 
-                if (!result) {
-                    throw new Error("Connection Not found")
+                    $or: [
+                        { fromUser: new mongoose.Types.ObjectId(requestedUser), toUser: new mongoose.Types.ObjectId(loggedInUser.userId) },
+                        { fromUser: new mongoose.Types.ObjectId(loggedInUser.userId), toUser: new mongoose.Types.ObjectId(requestedUser) }
+                    ]
+                });
+        
+                if (!connectionResult) {
+                    throw new Error("Connection not found.");
                 }
-
-                result.status = status
-
-                await result.save()
-
+        
+                // Update status and timestamp
+                connectionResult.status = status;
+                connectionResult.timestamp = new Date();
+                await connectionResult.save();
+        
+                const acceptedByUser = await User.findById(loggedInUser.userId);
+                const acceptedToUser = await User.findById(requestedUser);
+        
+                console.log("User accepting the request:", acceptedByUser.userName);
+                console.log("User who sent the request:", acceptedToUser.userName);
+        
                 return {
-                    sucess: true,
-                    message: "Your connection request accpected...",
+                    success: true,
+                    message: `Request ${status}`,
                     request: {
-                        fromUser,
-                        status,
-                        timestamp: new Date()
+                        toUser: {
+                            id: acceptedToUser._id.toString(),  
+                            userName: acceptedToUser.userName,
+                            email: acceptedToUser.email
+                        },
+                        status: connectionResult.status,
+                        timestamp: connectionResult.timestamp.toISOString()
                     }
-                }
+                };
             } catch (error) {
+                console.error("Error in reviewRequestConnection:", error.message);
                 return {
                     success: false,
                     message: error.message || "Failed to review connection request.",
                     request: null,
                 };
             }
-        },
+        }
     }
 }
 
