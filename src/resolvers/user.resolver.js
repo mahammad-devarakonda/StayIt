@@ -2,22 +2,24 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
 const Post = require('../model/Posts')
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.API_SECRET_KEY
+});
+
 
 const userResolver = {
-  Query: {
-    user: async (_,{id}) => {
 
-      console.log(id);
-      
+  Query: {
+    user: async (_, { id }) => {
 
       try {
-        const user=await User.findById(id)
-        console.log(user);
-        
-        const posts = await Post.find({ userId: user });
+        const user = await User.findById(id)
 
-        console.log(posts);
-        
+        const posts = await Post.find({ userId: user });
 
         return {
           user: {
@@ -27,24 +29,22 @@ const userResolver = {
           },
           posts: posts,
         }
-        
+
       } catch (error) {
         throw new Error("No user Found")
       }
     },
 
-    
+
 
     UserPosts: async (_, __, context) => {
       const userID = context.user.userId
 
-      console.log(userID);
-      
       if (!userID) {
         throw new Error('User is not authenticated');
       }
 
-      const user = await User.findById(userID)  
+      const user = await User.findById(userID)
 
       if (!user) {
         throw new Error('User not found');
@@ -115,35 +115,85 @@ const userResolver = {
       return { token, user }
     },
 
-    addPost: async (_, { input }, context) => {
+    addPost: async (_, { file, content }, context) => {
 
-      const userID = context.user.userId
+      const userID=context?.user?.userId
 
       if (!userID) {
-        throw new Error('User is not authenticated');
+        throw new Error("Unauthorized: Please log in.");
+    }
+
+      const uploadedFile = await file;
+
+      if (!uploadedFile) {
+        throw new Error("No file was uploaded.");
       }
+    
+      const actualFile = uploadedFile.file || (await uploadedFile.promise);
 
-      const { content, imageURL } = input;
+      if (!actualFile) {
+        throw new Error("Failed to extract file details.");
+      }
+    
+      const { createReadStream, filename } = actualFile;
+      if (!createReadStream) {
+        throw new Error("Invalid file upload!");
+      }
+    
+      const stream = createReadStream();
+      const uniqueFilename = `${context.user?.userId}_${Date.now()}_${filename}`;
+    
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "social_media_uploads",
+            public_id: uniqueFilename,
+            resource_type: "auto",
+          },
+          async (error, result) => {
+            if (error) {
+              console.error("Cloudinary Upload Error:", error);
+              return reject(new Error("File upload failed!"));
+            }
 
-      console.log(input);
-
-      const newPost = new Post({
-        content,
-        imageURL,
-        userId: userID,
+            try {
+              const newPost = new Post({
+                content: content || "",
+                imageURL: result.secure_url,
+                userId: context.user?.userId,
+              });
+    
+              const savedPost = await newPost.save();
+              const user = await User.findById(context.user?.userId);
+              if (!user) throw new Error("User not found");
+    
+              user.posts.push(savedPost._id);
+              await user.save();
+    
+              resolve({
+                success: true,
+                message: "File uploaded successfully!",
+                fileUrl: result.secure_url,
+                fileDetails: {
+                  id: savedPost._id,
+                  content: savedPost.content,
+                  imageURL: savedPost.imageURL,
+                },
+              });
+            } catch (dbError) {
+              console.error("Database Error:", dbError);
+              reject(new Error("Database operation failed!"));
+            }
+          }
+        );
+    
+        stream.pipe(uploadStream);
       });
-
-      const savedPost = await newPost.save();
-
-      const user = await User.findById(userID);
-      console.log(user);
-
-      user.posts.push(savedPost._id);
-      await user.save();
-
-      return savedPost;
-    },
+    }
+    
+    
   }
+
 }
 
 module.exports = userResolver

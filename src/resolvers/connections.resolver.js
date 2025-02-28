@@ -5,7 +5,6 @@ const mongoose = require('mongoose')
 const connectionResolver = {
     Query: {
         myRequests: async (_, __, context) => {
-            console.log("Fetching connection requests");
         
             const loginUser = context?.user.userId;
         
@@ -36,6 +35,7 @@ const connectionResolver = {
     },
     Mutation: {
         sendRequestConnection: async (_, { input }, context) => {
+
             try {
                 const fromUser = await User.findById(context.user.userId);
 
@@ -73,7 +73,6 @@ const connectionResolver = {
 
 
                 if (existingRequest) {  
-                    console.log("A connection request has already been sent to this user.");
                     throw new Error("A connection request has already been sent to this user.")
                 }
                 const connectionRequest = new Connections({
@@ -136,9 +135,6 @@ const connectionResolver = {
         
                 const acceptedByUser = await User.findById(loggedInUser.userId);
                 const acceptedToUser = await User.findById(requestedUser);
-        
-                console.log("User accepting the request:", acceptedByUser.userName);
-                console.log("User who sent the request:", acceptedToUser.userName);
         
                 return {
                     success: true,

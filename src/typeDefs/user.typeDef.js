@@ -44,10 +44,26 @@ const usertypeDef = gql`
         imageURL: String
     }
 
+    type SignedUrlResponse {
+        url: String!
+        fileUrl: String!
+    }
+
+    scalar Upload
+
+    type FileResponse {
+        success: Boolean!
+        message: String!
+        fileUrl: String
+        fileDetails:Post!
+    }
+
+
     type Mutation {
         register(userName : String!, email:String!, password:String! ):AuthPayload
         login(email:String!,password:String!):AuthPayload
-        addPost(input:AddPostInput!): Post!
+        getSignedUrl(filename: String!, fileType: String!): SignedUrlResponse!
+        addPost(file: Upload!, content: String!): FileResponse!
     }
 `
 

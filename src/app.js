@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const User = require('../src/model/User')
 const mongoose = require('mongoose')
+const { graphqlUploadExpress } = require('graphql-upload');
 require("dotenv").config();
 
 
@@ -40,6 +41,13 @@ const watchPosts = async () => {
 const startServer = async () => {
   const app = express();
   const PORT = process.env.PORT || 5000;
+  let graphqlUploadExpress;
+  try {
+    graphqlUploadExpress = require("graphql-upload").graphqlUploadExpress;
+    app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+  } catch (error) {
+    console.warn("⚠️ graphql-upload is not compatible with this setup. Skipping...");
+  }
 
   app.use(
     cors({
@@ -50,6 +58,13 @@ const startServer = async () => {
 
   app.use(express.json());
   app.use(cookieParser());
+  app.use((req, res, next) => {
+    console.log(`📩 Incoming Request: ${req.method} ${req.url}`);
+    console.log("Headers:", req.headers);
+    console.log("Body:", req.body);
+    next();
+  });
+  
 
   try {
     await connectDB();
