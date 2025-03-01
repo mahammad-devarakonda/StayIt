@@ -25,7 +25,8 @@ const userResolver = {
           user: {
             id: user._id,
             userName: user.userName,
-            email: user.email
+            email: user.email,
+            avatar : user.avatar,
           },
           posts: posts,
         }
@@ -65,12 +66,17 @@ const userResolver = {
     feed: async (_, __, context) => {
       const loginUser = context?.user.userId;
 
-      const showFeed = await User.find({ _id: { $ne: loginUser } }, "userName,posts").populate("posts userName _id");
+      const showFeed = await User.find({ _id: { $ne: loginUser } }, "userName,posts,avatar").populate("posts userName _id avatar");
+
+      console.log(showFeed);
+      
 
       return showFeed.map(user => ({
         id: user._id.toString(),
-        userName: user.userName, // Ensure userName is always returned
-        posts: user.posts || []  // Ensure posts is always an array
+        userName: user?.userName,
+        avatar:user?.avatar,
+        posts: user?.posts || [] ,
+
       }));
     }
   },
@@ -103,6 +109,7 @@ const userResolver = {
     login: async (_, { email, password }, { res }) => {
 
       const user = await User.findOne({ email });
+
       if (!user) {
         throw new Error("User not found");
       }

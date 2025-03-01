@@ -6,6 +6,7 @@ const usertypeDef = gql`
         userName:String!,
         email:String!,
         password:String!,
+        avatar:String
     }
 
     type Post {
@@ -24,7 +25,9 @@ const usertypeDef = gql`
     type FeedUserResponce {
         id: ID!
         userName:String!
+        avatar:String!
         posts:[Post!]!
+
     }
 
     type Query {
