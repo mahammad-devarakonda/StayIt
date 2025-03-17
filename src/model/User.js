@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     },
     bio:{
         type:String,
-        default:"Enter your about"
+        default:""
     },
     posts: [
         {

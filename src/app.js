@@ -58,12 +58,12 @@ const startServer = async () => {
 
   app.use(express.json());
   app.use(cookieParser());
-  app.use((req, res, next) => {
+/*   app.use((req, res, next) => {
     console.log(`📩 Incoming Request: ${req.method} ${req.url}`);
     console.log("Headers:", req.headers);
     console.log("Body:", req.body);
     next();
-  });
+  }); */
   
 
   try {

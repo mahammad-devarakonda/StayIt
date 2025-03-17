@@ -26,7 +26,8 @@ const userResolver = {
             id: user._id,
             userName: user.userName,
             email: user.email,
-            avatar : user.avatar,
+            avatar: user.avatar,
+            bio: user?.bio
           },
           posts: posts,
         }
@@ -64,20 +65,32 @@ const userResolver = {
     },
 
     feed: async (_, __, context) => {
-      const loginUser = context?.user.userId;
+      const loginUser = context?.user?.userId;
 
-      const showFeed = await User.find({ _id: { $ne: loginUser } }, "userName,posts,avatar").populate("posts userName _id avatar");
+      const users = await User.find(
+        { _id: { $ne: loginUser } },
+        "_id userName avatar bio posts"
+      ).populate({
+        path: "posts",
+        options: { sort: { createdAt: -1 } },
+      });
 
-      console.log(showFeed);
-      
 
-      return showFeed.map(user => ({
-        id: user._id.toString(),
-        userName: user?.userName,
-        avatar:user?.avatar,
-        posts: user?.posts || [] ,
+      const feedData = users
+        .filter(user => user.posts.length > 0)
+        .map(user => ({
+          id: user._id ? user._id.toString() : "",
+          userName: user.userName || "Unknown",
+          avatar: user.avatar || "",
+          bio: user.bio || "",
+          posts: user.posts.map(post => ({
+            id: post._id ? post._id.toString() : "",
+            content: post.content || "",
+            imageURL: post.imageURL || "",
+          })),
+        }));
 
-      }));
+      return feedData;
     }
   },
 
@@ -124,32 +137,32 @@ const userResolver = {
 
     addPost: async (_, { file, content }, context) => {
 
-      const userID=context?.user?.userId
+      const userID = context?.user?.userId
 
       if (!userID) {
         throw new Error("Unauthorized: Please log in.");
-    }
+      }
 
       const uploadedFile = await file;
 
       if (!uploadedFile) {
         throw new Error("No file was uploaded.");
       }
-    
+
       const actualFile = uploadedFile.file || (await uploadedFile.promise);
 
       if (!actualFile) {
         throw new Error("Failed to extract file details.");
       }
-    
+
       const { createReadStream, filename } = actualFile;
       if (!createReadStream) {
         throw new Error("Invalid file upload!");
       }
-    
+
       const stream = createReadStream();
       const uniqueFilename = `${context.user?.userId}_${Date.now()}_${filename}`;
-    
+
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -169,14 +182,14 @@ const userResolver = {
                 imageURL: result.secure_url,
                 userId: context.user?.userId,
               });
-    
+
               const savedPost = await newPost.save();
               const user = await User.findById(context.user?.userId);
               if (!user) throw new Error("User not found");
-    
+
               user.posts.push(savedPost._id);
               await user.save();
-    
+
               resolve({
                 success: true,
                 message: "File uploaded successfully!",
@@ -193,12 +206,12 @@ const userResolver = {
             }
           }
         );
-    
+
         stream.pipe(uploadStream);
       });
     }
-    
-    
+
+
   }
 
 }

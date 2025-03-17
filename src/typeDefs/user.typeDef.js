@@ -7,6 +7,7 @@ const usertypeDef = gql`
         email:String!,
         password:String!,
         avatar:String
+        bio:String
     }
 
     type Post {
@@ -26,7 +27,9 @@ const usertypeDef = gql`
         id: ID!
         userName:String!
         avatar:String!
+        bio:String!
         posts:[Post!]!
+        createdAt: String!
 
     }
 
