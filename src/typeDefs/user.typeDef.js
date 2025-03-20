@@ -20,6 +20,7 @@ const usertypeDef = gql`
     type UserPostsResponse {
         user: User!
         posts: [Post!]!
+        connection:Int!
     }
 
 
@@ -38,6 +39,7 @@ const usertypeDef = gql`
         user(id: ID!): UserPostsResponse,
         UserPosts: UserPostsResponse!
         feed:[FeedUserResponce!]!
+        MyConnections(id: ID!):[User]
     }
 
     type AuthPayload {

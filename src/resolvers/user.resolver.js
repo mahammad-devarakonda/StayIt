@@ -1,8 +1,11 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
-const Post = require('../model/Posts')
+const Post = require('../model/Posts');
+const Connections = require('../model/Connections')
 const cloudinary = require('cloudinary').v2
+const mongoose = require('mongoose')
+
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -20,6 +23,13 @@ const userResolver = {
         const user = await User.findById(id)
 
         const posts = await Post.find({ userId: user });
+        const connection = await Connections.find({
+          $or: [
+            { toUser: new mongoose.Types.ObjectId(id) },
+            { fromUser: new mongoose.Types.ObjectId(id) }
+          ],
+          status: "accepted"
+        })
 
         return {
           user: {
@@ -30,6 +40,7 @@ const userResolver = {
             bio: user?.bio
           },
           posts: posts,
+          connection: connection.length
         }
 
       } catch (error) {
@@ -91,9 +102,52 @@ const userResolver = {
         }));
 
       return feedData;
-    }
-  },
+    },
 
+    MyConnections: async (_, { id },context) => {
+
+      console.log(id);
+      
+      if (!context) {
+        throw new Error("User not authenticated");
+      }
+    
+      try {
+        const query = {
+          $or: [
+            { toUser: new mongoose.Types.ObjectId(id) },
+            { fromUser: new mongoose.Types.ObjectId(id) }
+          ],
+          status: "accepted"
+        };
+    
+        const userConnections = await Connections.find(query)
+          .populate("fromUser", "username email avatar bio")
+          .populate("toUser", "username email avatar bio");
+    
+        const userConnectionData = await Promise.all(userConnections.map(async (connection) => {
+          const otherUser = connection.fromUser._id.toString() === id
+            ? connection.toUser
+            : connection.fromUser;
+    
+          return {
+            id: otherUser._id.toString(),
+            userName: otherUser.username,
+            email: otherUser.email,
+            avatar: otherUser.avatar,
+            bio: otherUser.bio
+          };
+        }));
+    
+        return userConnectionData; // Always return an array
+    
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+        return [];
+      }
+    }
+    
+  },
 
   Mutation: {
     register: async (_, { userName, email, password }, { res }) => {
