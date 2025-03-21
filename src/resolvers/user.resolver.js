@@ -120,25 +120,27 @@ const userResolver = {
           ],
           status: "accepted"
         };
-    
+
+
+      
         const userConnections = await Connections.find(query)
-          .populate("fromUser", "username email avatar bio")
-          .populate("toUser", "username email avatar bio");
+          .populate("fromUser", "userName email avatar bio")
+          .populate("toUser", "userName email avatar bio");
     
         const userConnectionData = await Promise.all(userConnections.map(async (connection) => {
           const otherUser = connection.fromUser._id.toString() === id
             ? connection.toUser
             : connection.fromUser;
-    
+  
           return {
             id: otherUser._id.toString(),
-            userName: otherUser.username,
+            userName: otherUser.userName,
             email: otherUser.email,
             avatar: otherUser.avatar,
             bio: otherUser.bio
           };
         }));
-    
+
         return userConnectionData; // Always return an array
     
       } catch (error) {
