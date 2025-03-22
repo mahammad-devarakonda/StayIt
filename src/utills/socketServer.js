@@ -10,7 +10,9 @@ const createSocketServer = (server) => {
     },
   });
 
-  io.on("connection", async (socket) => {
+  const users = {}; // Object to store user connections
+
+  io.on("connection", (socket) => {
     console.log(`🔌 New client connected: ${socket.id}`);
 
     socket.on("joinChat", (data) => {
@@ -31,15 +33,24 @@ const createSocketServer = (server) => {
       socket.join(roomId);
     });
 
+    // Handle User Online Status
+    socket.on("userOnline", (userId) => {
+      if (!userId) return;
+
+      if (!users[userId]) {
+        users[userId] = new Set(); // Store multiple socket connections per user
+      }
+      users[userId].add(socket.id);
+      console.log(`🟢 User ${userId} is online`);
+
+      io.emit("updateUserStatus", { userId, status: "online" });
+    });
+
+    // Handle Send Message
     socket.on("sendMessage", async (data) => {
       const { roomId, message, senderId, receiverId } = data;
 
       console.log("Received sendMessage event:", data);
-
-      if (!roomId) console.error("❌ Missing roomId");
-      if (!message) console.error("❌ Missing message");
-      if (!senderId) console.error("❌ Missing senderId");
-      if (!receiverId) console.error("❌ Missing receiverId");
 
       if (!roomId || !message || !senderId || !receiverId) {
         console.error("❌ Invalid sendMessage event data:", data);
@@ -53,10 +64,10 @@ const createSocketServer = (server) => {
         if (!chat) {
           chat = new Chat({
             participants,
-            message: [{ senderId, text: message }], // ✅ Correct key names
+            message: [{ senderId, text: message }],
           });
         } else {
-          chat.message.push({ senderId, text: message }); // ✅ Correct key names
+          chat.message.push({ senderId, text: message });
         }
 
         await chat.save();
@@ -67,8 +78,26 @@ const createSocketServer = (server) => {
       }
     });
 
+    // Handle Disconnect and Update User Status
     socket.on("disconnect", () => {
-      console.log(`❌ Client disconnected: ${socket.id}`);
+      let disconnectedUserId = null;
+
+      for (const [userId, sockets] of Object.entries(users)) {
+        if (sockets.has(socket.id)) {
+          sockets.delete(socket.id);
+
+          if (sockets.size === 0) {
+            disconnectedUserId = userId;
+            delete users[userId];
+          }
+          break;
+        }
+      }
+
+      if (disconnectedUserId) {
+        console.log(`🔴 User ${disconnectedUserId} is offline`);
+        io.emit("updateUserStatus", { userId: disconnectedUserId, status: "offline" });
+      }
     });
   });
 
