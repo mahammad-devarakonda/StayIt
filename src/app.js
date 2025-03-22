@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const User = require("./model/User");
 require("dotenv").config();
 
+
 const watchPosts = async () => {
   const postCollection = mongoose.connection.collection("posts");
   const changeStream = postCollection.watch();
@@ -44,14 +45,14 @@ const startServer = async () => {
 
   app.use(express.json());
   app.use(cookieParser());
-  app.use((req, res, next) => {
+/*   app.use((req, res, next) => {
     console.log(`📩 Received ${req.method} request to ${req.url}`);
     console.log("🔗 Headers:", req.headers);
     console.log("📦 Body:", req.body);
     console.log("🧵 Query Params:", req.query);
     console.log("🆔 Params:", req.params);
     next();
-  });
+  }); */
   
 
   try {
