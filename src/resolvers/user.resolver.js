@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
 const Post = require('../model/Posts');
+const Chat = require('../model/Chat')
 const Connections = require('../model/Connections')
 const cloudinary = require('cloudinary').v2
 const mongoose = require('mongoose')
@@ -47,8 +48,6 @@ const userResolver = {
         throw new Error("No user Found")
       }
     },
-
-
 
     UserPosts: async (_, __, context) => {
       const userID = context.user.userId
@@ -104,14 +103,12 @@ const userResolver = {
       return feedData;
     },
 
-    MyConnections: async (_, { id },context) => {
+    MyConnections: async (_, { id }, context) => {
 
-      console.log(id);
-      
       if (!context) {
         throw new Error("User not authenticated");
       }
-    
+
       try {
         const query = {
           $or: [
@@ -122,16 +119,16 @@ const userResolver = {
         };
 
 
-      
+
         const userConnections = await Connections.find(query)
           .populate("fromUser", "userName email avatar bio")
           .populate("toUser", "userName email avatar bio");
-    
+
         const userConnectionData = await Promise.all(userConnections.map(async (connection) => {
           const otherUser = connection.fromUser._id.toString() === id
             ? connection.toUser
             : connection.fromUser;
-  
+
           return {
             id: otherUser._id.toString(),
             userName: otherUser.userName,
@@ -142,14 +139,60 @@ const userResolver = {
         }));
 
         return userConnectionData; // Always return an array
-    
+
       } catch (error) {
         console.error("Error fetching connections:", error);
         return [];
       }
+    },
+
+    chat: async (_, { id }, context) => {
+      const loginUser = context?.user?.userId;
+
+      if (!loginUser) {
+        console.error("User not authenticated!");
+        throw new Error("User not authenticated");
+      }
+
+      try {
+        // Find chat between logged-in user and target user
+        const chat = await Chat.findOne({
+          participants: { $all: [loginUser, id] },
+        }).lean();;
+
+        console.log(chat);
+
+
+        if (!chat) {
+          console.error("Chat not found for ID:", id);
+          throw new Error("Chat not found!");
+        }
+
+        const messages = await Promise.all(
+          chat.message.map(async (msg) => {
+            const senderUser = await User.findById(msg.senderId).lean();
+            return {
+              sender: senderUser ? { id: senderUser._id, userName: senderUser.userName, avatar: senderUser.avatar } : null,
+              text: msg.text,
+              sentAt: msg.createdAt.toISOString(),
+            };
+          })
+        );
+
+        return {
+          id: chat._id.toString(),
+          participants: chat.participants.map(p => p.toString()),  // Convert ObjectId to string
+          message: messages,
+          timestamp: chat.timestamp.toISOString(),
+        };
+
+      } catch (error) {
+        console.error("Error fetching chat:", error);
+        throw new Error("Error retrieving chat");
+      }
     }
-    
   },
+
 
   Mutation: {
     register: async (_, { userName, email, password }, { res }) => {

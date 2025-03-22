@@ -31,7 +31,19 @@ const usertypeDef = gql`
         bio:String!
         posts:[Post!]!
         createdAt: String!
+    }
 
+    type chatResponce {
+        id: ID!
+        participants:[String!]!
+        message: [Message!]!
+        timestamp: String!
+    }
+
+    type Message {
+        sender: User!  
+        text: String!
+        sentAt: String!
     }
 
     type Query {
@@ -40,6 +52,7 @@ const usertypeDef = gql`
         UserPosts: UserPostsResponse!
         feed:[FeedUserResponce!]!
         MyConnections(id: ID!):[User]
+        chat(id:ID!):chatResponce
     }
 
     type AuthPayload {
