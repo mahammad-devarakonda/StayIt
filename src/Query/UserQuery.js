@@ -1,0 +1,39 @@
+const User=require('../model/User')
+const Connections=require("../model/Connections")
+const Post=require('../model/Posts')
+
+
+
+const user = async (_, { id }) => {
+
+    try {
+        const user = await User.findById(id)
+        const posts = await Post.find({ userId: user });
+        const connection = await Connections.find({
+            $or: [
+                { toUser: new mongoose.Types.ObjectId(id) },
+                { fromUser: new mongoose.Types.ObjectId(id) }
+            ],
+            status: "accepted"
+        })
+
+        return {
+            user: {
+                id: user._id,
+                userName: user.userName,
+                email: user.email,
+                avatar: user.avatar,
+                bio: user?.bio
+            },
+            posts: posts,
+            connection: connection.length
+        }
+
+    } catch (error) {
+        throw new Error("No user Found")
+    }
+}
+
+
+module.exports=user
+
