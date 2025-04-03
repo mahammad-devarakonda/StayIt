@@ -8,6 +8,8 @@ const createGraphQLServer = require("./utills/graphqlServer");
 const createSocketServer = require("./utills/socketServer");
 require("dotenv").config();
 
+require('../src/utills/CornScheaduler')
+
 const startServer = async () => {
   const app = express();
   const PORT = process.env.PORT || 5000;
