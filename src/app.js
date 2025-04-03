@@ -3,34 +3,10 @@ const connectDB = require("./utills/config");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const http = require("http");
+const helmet = require("helmet"); // Added Security Middleware
 const createGraphQLServer = require("./utills/graphqlServer");
 const createSocketServer = require("./utills/socketServer");
-const mongoose = require("mongoose");
-const User = require("./model/User");
 require("dotenv").config();
-
-
-const watchPosts = async () => {
-  const postCollection = mongoose.connection.collection("posts");
-  const changeStream = postCollection.watch();
-
-  changeStream.on("change", async (change) => {
-    if (change.operationType === "delete") {
-      const postId = change.documentKey._id;
-      console.log(`🗑️ Post deleted: ${postId}`);
-      await User.updateMany({}, { $pull: { posts: postId } });
-      console.log(`✅ Post ${postId} removed from users' posts array`);
-    }
-  });
-
-  changeStream.on("error", (error) => {
-    console.error("🚨 Change Stream Error:", error);
-    changeStream.close();
-    setTimeout(watchPosts, 5000);
-  });
-
-  console.log("👀 Watching for post deletions...");
-};
 
 const startServer = async () => {
   const app = express();
@@ -38,22 +14,14 @@ const startServer = async () => {
 
   app.use(
     cors({
-      origin: process.env.FRONTEND,
+      origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
       credentials: true,
     })
   );
 
   app.use(express.json());
-  app.use(cookieParser());
-  /*  app.use((req, res, next) => {
-    console.log(`📩 Received ${req.method} request to ${req.url}`);
-    console.log("🔗 Headers:", req.headers);
-    console.log("📦 Body:", req.body);
-    console.log("🧵 Query Params:", req.query);
-    console.log("🆔 Params:", req.params);
-    next();
-  }) */
-  
+  app.use(cookieParser()); // Ensure this is before GraphQL
+  app.use(helmet()); // Secure HTTP headers
 
   try {
     await connectDB();
@@ -61,8 +29,6 @@ const startServer = async () => {
 
     const server = http.createServer(app);
     const io = createSocketServer(server);
-
-    watchPosts();
     await createGraphQLServer(app, io);
 
     server.listen(PORT, () => {
@@ -74,5 +40,16 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Handle unexpected errors
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
 
 startServer();

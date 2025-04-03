@@ -49,36 +49,34 @@ const createSocketServer = (server) => {
     // Handle Send Message
     socket.on("sendMessage", async (data) => {
       const { roomId, message, senderId, receiverId } = data;
-
+    
       console.log("Received sendMessage event:", data);
-
+    
       if (!roomId || !message || !senderId || !receiverId) {
         console.error("❌ Invalid sendMessage event data:", data);
         return;
       }
-
+    
       try {
         const participants = [senderId, receiverId].sort();
         let chat = await Chat.findOne({ participants });
-
+    
         if (!chat) {
           chat = new Chat({
             participants,
-            message: [{ senderId, text: message }],
+            messages: [{ senderId, text: message }], // Fixed "messages" array name
           });
         } else {
           chat.message.push({ senderId, text: message });
         }
-
+    
         await chat.save();
         socket.to(roomId).emit("receiveMessage", { message, senderId });
-
+    
       } catch (error) {
         console.error("❌ Error saving message:", error);
       }
     });
-
-    // Handle Disconnect and Update User Status
     socket.on("disconnect", () => {
       let disconnectedUserId = null;
 

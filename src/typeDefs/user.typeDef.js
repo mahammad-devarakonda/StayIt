@@ -54,10 +54,14 @@ const usertypeDef = gql`
         MyConnections(id: ID!):[User]
         chat(id:ID!):chatResponce
     }
-
     type AuthPayload {
+        message:String!
         token: String!
         user: User!
+    }
+
+    type OTPResponse {
+        message: String!
     }
 
     input AddPostInput {
@@ -81,8 +85,9 @@ const usertypeDef = gql`
 
 
     type Mutation {
-        register(userName : String!, email:String!, password:String! ):AuthPayload
-        login(email:String!,password:String!):AuthPayload
+        register(userName : String!, email:String!, password:String! ):OTPResponse!
+        login(email:String!,password:String!):OTPResponse!
+        verifyOTP(email:String!,otp:String!):AuthPayload
         getSignedUrl(filename: String!, fileType: String!): SignedUrlResponse!
         addPost(file: Upload!, content: String!): FileResponse!
     }

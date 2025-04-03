@@ -12,11 +12,9 @@ const createGraphQLServer = async (app, io) => {
         const user = userAuthMiddleware(req);
         return { res, user, io };
       } catch (err) {
-        console.error("Authentication Error:", err.message);
-        return { res, user: null, io };
+        throw new Error(`Authentication failed: ${err.message}`);
       }
     },
-    playground: true,
   });
 
   await apolloServer.start();
