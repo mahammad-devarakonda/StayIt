@@ -7,13 +7,10 @@ const mongoose = require("mongoose");
 
 const user = async (_, { id }) => {
 
-
-    console.log(id);
     
     try {
         const user = await User.findById(id)
         const posts = await Post.find({ userId: user });
-        console.log("THis is posts Details",posts);
         
         const connection = await Connections.find({
             $or: [

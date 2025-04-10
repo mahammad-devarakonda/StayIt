@@ -5,8 +5,6 @@ const sendNotifiacationEmail = async (email) => {
         console.error("❌ No recipient email provided!");
         return;
     }
-
-    console.log("Preparing to send email to:", email);
     
     try {
         const transporter = nodemailer.createTransport({

@@ -24,7 +24,6 @@ const register = async (_, { userName, email, password }, { res }) => {
     const otp = genrateOTP()
     try {
         await redis.set(`otp:${user.email}`, otp, { EX: 300 });
-        console.log(`✅ OTP stored in Redis for ${user.email}`);
     } catch (error) {
         console.error("❌ Error storing OTP in Redis:", error);
         throw new Error("Internal server error");

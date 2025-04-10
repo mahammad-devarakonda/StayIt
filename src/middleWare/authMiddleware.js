@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const userAuthMiddleware = (req) => {
-    console.log("Entering Middleware...");
-
+  
     const query = req.body.query || "";
     if (query.includes("login") || query.includes("register")|| query.includes("verifyOTP")) {
         return null;  // Allow these queries without authentication

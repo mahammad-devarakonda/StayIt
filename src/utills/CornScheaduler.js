@@ -17,11 +17,9 @@ cron.schedule('0 8 * * *', async() => {
 
 
     const listOfEmailId=[...new Set(pendingRequests.map(req=>req.toUser.email))]
-    console.log(listOfEmailId);
 
     for(const email of listOfEmailId){
         if (email) { 
-            console.log("Sending email to:", email);
             await sendNotifiacationEmail(email);
         }
     }

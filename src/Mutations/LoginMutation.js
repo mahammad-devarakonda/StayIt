@@ -19,9 +19,6 @@ const login = async (_, { email, password }) => {
    
     try {
       await redis.set(`otp:${email}`, otp, { EX: 300 });
-      console.log(`✅ OTP stored in Redis for ${email}`);
-      const storedOtp = await redis.get(`otp:${email}`);
-      console.log(`✅ OTP stored in Redis ${storedOtp}`);
     } catch (error) {
       console.error("❌ Error storing OTP in Redis:", error);
       throw new Error("Internal server error");

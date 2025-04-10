@@ -49,9 +49,7 @@ const createSocketServer = (server) => {
     // Handle Send Message
     socket.on("sendMessage", async (data) => {
       const { roomId, message, senderId, receiverId } = data;
-    
-      console.log("Received sendMessage event:", data);
-    
+        
       if (!roomId || !message || !senderId || !receiverId) {
         console.error("❌ Invalid sendMessage event data:", data);
         return;
