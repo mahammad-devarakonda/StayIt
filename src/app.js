@@ -10,6 +10,7 @@ require("dotenv").config();
 
 require('../src/utills/CornScheaduler')
 
+
 const startServer = async () => {
   const app = express();
   const PORT = process.env.PORT || 5000;
@@ -24,6 +25,15 @@ const startServer = async () => {
   app.use(express.json());
   app.use(cookieParser()); // Ensure this is before GraphQL
   app.use(helmet()); // Secure HTTP headers
+
+  app.use((req, res, next) => {
+/*     console.log("📥 Incoming Request:");
+    console.log("➡️ Method:", req.method);
+    console.log("➡️ URL:", req.originalUrl);
+    console.log("➡️ Headers:", req.headers); */
+    console.log("➡️ Body:", req.body);
+    next();
+  });
 
   try {
     await connectDB();

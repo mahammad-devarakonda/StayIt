@@ -15,15 +15,12 @@ const userAuthMiddleware = (req) => {
         token = req.headers.authorization.split(" ")[1];
     }
 
-    console.log("Token received:", token);
-
     if (!token) {
         throw new Error("No authentication token provided. Please Sign in or Sign up!");
     }
 
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded User:", decodedToken);
         return decodedToken;
     } catch (error) {
         throw new Error("Invalid or expired token: " + error.message);

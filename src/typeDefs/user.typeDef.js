@@ -29,6 +29,7 @@ const usertypeDef = gql`
         userName:String!
         avatar:String!
         bio:String!
+        connectionStatus:String
         posts:[Post!]!
         createdAt: String!
     }
