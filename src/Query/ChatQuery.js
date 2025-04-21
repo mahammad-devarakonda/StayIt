@@ -1,4 +1,5 @@
 const Chat = require('../model/Chat')
+const User=require('../model/User')
 
 const chat = async (_, { id }, context) => {
     const loginUser = context?.user?.userId;
@@ -11,9 +12,8 @@ const chat = async (_, { id }, context) => {
     try {
         const chat = await Chat.findOne({
             participants: { $all: [loginUser, id] },
-        }).lean();;
+        }).lean();
 
-        console.log(chat);
 
 
         if (!chat) {

@@ -9,7 +9,6 @@ cloudinary.config({
 });
 
 
-
 const addPost = async (_, { file, content }, context) => {
     const userID = context?.user?.userId;
 

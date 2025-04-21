@@ -1,31 +1,39 @@
-const Connection=require('../model/Connections')
+const Connection = require('../model/Connections');
 const cron = require('node-cron');
-const {subDays, startOfDay, endOfDay}=require('date-fns')
-const sendNotifiacationEmail=require('./SendNotificationEmail')
+const { subDays, startOfDay, endOfDay } = require('date-fns');
+const sendNotificationEmail = require('../utills/SendNotificationEmail');
 
-const yesterday=subDays(new Date(),1)
-const yesterdayStart=startOfDay(yesterday)
-const currentTimeAndDate=endOfDay(new Date())
-cron.schedule('0 8 * * *', async() => {
-    const pendingRequests=await Connection.find({
-        status:"interested",
-        createdAt:{
-            $gte:yesterdayStart,
-            $lt:currentTimeAndDate,
+const yesterday = subDays(new Date(), 1);
+const yesterdayStart = startOfDay(yesterday);
+const currentTimeAndDate = endOfDay(new Date());
+
+cron.schedule('1 * * * *', async () => {
+    const pendingRequests = await Connection.find({
+        status: "interested",
+        createdAt: {
+            $gte: yesterdayStart,
+            $lt: currentTimeAndDate,
         }
-    }).populate("fromUser toUser")
+    }).populate("fromUser toUser");
 
 
-    const listOfEmailId=[...new Set(pendingRequests.map(req=>req.toUser.email))]
+    console.log(pendingRequests);
+    
 
-    for(const email of listOfEmailId){
-        if (email) { 
-            await sendNotifiacationEmail(email);
+    const emailsToSend = [];
+
+    for (const request of pendingRequests) {
+        const toEmail = request.toUser?.email;
+        const fromUserName = request.fromUser?.name || 'Someone';
+
+        if (toEmail) {
+            emailsToSend.push(sendNotificationEmail(toEmail, fromUserName));
         }
     }
-    
-    
+
+    await Promise.all(emailsToSend);
+
 }, {
     scheduled: true,
-    timezone: "Asia/Kolkata" 
+    timezone: "Asia/Kolkata"
 });

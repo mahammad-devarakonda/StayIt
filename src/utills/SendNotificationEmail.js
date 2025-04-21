@@ -1,34 +1,28 @@
-const nodemailer=require("nodemailer")
+const { Resend } = require("resend");
 
-const sendNotifiacationEmail = async (email) => {
-    if (!email) {
-        console.error("❌ No recipient email provided!");
-        return;
-    }
-    
+const resend = new Resend(process.env.SEND_EMAIL_API_KEY);
+
+const sendNotificationEmail = async (toAddress, fromUserName) => {
     try {
-        const transporter = nodemailer.createTransport({
-            service: "Gmail",
-            auth: { user: "devarakondahuzefa01@gmail.com", pass: "rhmypyupvdyvriqp" }
+        const { data, error } = await resend.emails.send({
+            from: 'no-reply@bondly.in',
+            to: toAddress,
+            subject: 'Action Required: Your Pending Connection',
+            html: `
+                <p>Hello,</p>
+                <p><strong>${fromUserName}</strong> has shown interest in connecting with you.</p>
+                <p>Please log in to your account to respond.</p>
+            `,
         });
 
-        const mailOptions = {
-            from: "devarakondahuzefa01@gmail.com",
-            to: email,
-            subject: 'Pending Connection Request',
-            html: `<div style="font-family: Arial, sans-serif; text-align: center;">
-            <h2>Pending Connection Request</h2>
-            <h2>Hurray new Connection Requests</h2>
-            <p>Please login to portal and review requests</p>
-            <p>If you didn't request this, please ignore this email.</p>
-            <p>Thank you!</p>
-          </div>`
-        };
-
-        await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error("Error sending OTP email:", error);
+        if (error) {
+            console.error(`❌ Error sending email to ${toAddress}:`, error);
+        } else {
+            console.log(`✅ Notification sent to ${toAddress}`);
+        }
+    } catch (err) {
+        console.error(`❌ Unexpected error sending to ${toAddress}:`, err);
     }
-}
+};
 
-module.exports=sendNotifiacationEmail
+module.exports = sendNotificationEmail;

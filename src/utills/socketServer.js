@@ -10,11 +10,9 @@ const createSocketServer = (server) => {
     },
   });
 
-  const users = {}; // Object to store user connections
+  const users = {};
 
   io.on("connection", (socket) => {
-    console.log(`🔌 New client connected: ${socket.id}`);
-
     socket.on("joinChat", (data) => {
       const { userName, ChatUser, LoginUser } = data;
       if (!userName || !ChatUser || !LoginUser) {
@@ -28,21 +26,18 @@ const createSocketServer = (server) => {
       }
 
       const roomId = [ChatUser, LoginUser].sort().join("_");
-      console.log(`✅ ${userName} joined room ${roomId}`);
-
       socket.join(roomId);
     });
 
-    // Handle User Online Status
     socket.on("userOnline", (userId) => {
       if (!userId) return;
 
       if (!users[userId]) {
-        users[userId] = new Set(); // Store multiple socket connections per user
+        users[userId] = new Set();
       }
       users[userId].add(socket.id);
-      console.log(`🟢 User ${userId} is online`);
 
+      console.log(`🟢 User ${userId} is online`);
       io.emit("updateUserStatus", { userId, status: "online" });
     });
 
