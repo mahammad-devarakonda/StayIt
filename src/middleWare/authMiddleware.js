@@ -18,6 +18,10 @@ const userAuthMiddleware = (req) => {
         throw new Error("No authentication token provided. Please Sign in or Sign up!");
     }
 
+
+    console.log(token);
+    
+
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         return decodedToken;
