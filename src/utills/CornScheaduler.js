@@ -7,7 +7,7 @@ const yesterday = subDays(new Date(), 1);
 const yesterdayStart = startOfDay(yesterday);
 const currentTimeAndDate = endOfDay(new Date());
 
-cron.schedule('1 * * * *', async () => {
+cron.schedule('0 8 * * *', async () => {
     const pendingRequests = await Connection.find({
         status: "interested",
         createdAt: {
