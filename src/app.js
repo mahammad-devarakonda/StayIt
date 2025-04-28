@@ -13,7 +13,7 @@ require('../src/utills/CornScheaduler')
 
 const startServer = async () => {
   const app = express();
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 3001;
 
   app.use(graphqlUploadExpress());
 
@@ -46,8 +46,6 @@ const startServer = async () => {
   try {
     
     await connectDB();
-    console.log("✅ MongoDB Connection Established...");
-
     const server = http.createServer(app);
     const io = createSocketServer(server);
     await createGraphQLServer(app, io);

@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
-const sendOTPEmail = require('../utills/SendOTPEmail')
 const nodemailer = require("nodemailer")
 const genrateOTP = require('../utills/GenrateOtp')
 const redis=require('../utills/redisSetUp')
+const { sendOtpMail } = require('../utills/SendOTPEmail');
 
 const register = async (_, { userName, email, password }, { res }) => {
     const existingUser = await User.findOne({ email });
@@ -29,7 +29,7 @@ const register = async (_, { userName, email, password }, { res }) => {
         throw new Error("Internal server error");
     }
     await user.save();
-    sendOTPEmail(user.email, otp);
+    await sendOtpMail(user?.email, otp);
 
     return { message: `You are registred sucessfully with ${email} please verify with OTP` };
 };
