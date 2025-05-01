@@ -28,23 +28,10 @@ const startServer = async () => {
   app.use(cookieParser()); // Ensure this is before GraphQL
   app.use(helmet()); // Secure HTTP headers
 
-  app.use((req, res, next) => {
-    console.log("🔍 New Request:");
-    console.log("➡ Method:", req.method);
-    console.log("➡ URL:", req.originalUrl);
-    console.log("➡ Headers:", req.headers);
-  
-    // Optional: Log body (only for JSON or URL-encoded data)
-    if (req.method !== "GET") {
-      console.log("➡ Body:", req.body);
-    }
-  
-    next();
-  });
   
 
   try {
-    
+    console.log("Hi")
     await connectDB();
     const server = http.createServer(app);
     const io = createSocketServer(server);

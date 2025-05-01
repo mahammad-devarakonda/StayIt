@@ -21,7 +21,10 @@ const verifyOTP = async (_, { email, otp }, { res }) => {
         throw new Error("Incorrect OTP. Please try again.");
       }
   
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+        expiresIn: "7d", // from 24h to 7d
+      });
+      
       res.cookie('authToken', token, { httpOnly: true, sameSite: "lax" });
   
       await redis.del(`otp:${email}`);
