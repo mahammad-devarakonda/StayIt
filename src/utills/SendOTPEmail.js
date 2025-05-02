@@ -7,7 +7,7 @@ const resend = new Resend(process.env.SEND_EMAIL_API_KEY);
         const { data, error } = await resend.emails.send({
             from: 'no-reply@bondly.in',
             to,
-            subject: 'Your OTP Code',
+            subject: 'Your OTP Code for Bondly Login',
             html: `
             <div style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 40px; display: flex; justify-content: center;">
                 <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; max-width: 400px; width: 100%; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-align: center;">

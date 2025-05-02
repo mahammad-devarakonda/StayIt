@@ -4,15 +4,11 @@ const User=require('../model/User')
 
 const verifyOTP = async (_, { email, otp }, { res }) => {
 
-  console.log(email,otp);
-  
     const user = await User.findOne({ email });
   
     try {
       const storedOtp = await redis.get(`otp:${email}`);
-      console.log("this is stored otp",storedOtp);
       
-  
       if (!storedOtp) {
         throw new Error("OTP expired or invalid.");
       }

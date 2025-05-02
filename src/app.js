@@ -25,13 +25,12 @@ const startServer = async () => {
   );
 
   app.use(express.json());
-  app.use(cookieParser()); // Ensure this is before GraphQL
-  app.use(helmet()); // Secure HTTP headers
+  app.use(cookieParser());
+  app.use(helmet()); 
 
   
 
   try {
-    console.log("Hi")
     await connectDB();
     const server = http.createServer(app);
     const io = createSocketServer(server);

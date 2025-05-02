@@ -57,8 +57,8 @@ const usertypeDef = gql`
     }
     type AuthPayload {
         message:String!
-        token: String!
         user: User!
+        token:String!
     }
 
     type OTPResponse {

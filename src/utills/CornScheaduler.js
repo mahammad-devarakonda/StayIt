@@ -16,10 +16,6 @@ cron.schedule('0 8 * * *', async () => {
         }
     }).populate("fromUser toUser");
 
-
-    console.log(pendingRequests);
-    
-
     const emailsToSend = [];
 
     for (const request of pendingRequests) {

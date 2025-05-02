@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { AuthenticationError } = require('apollo-server');
 
 const userAuthMiddleware = (req) => {
   
@@ -15,18 +16,15 @@ const userAuthMiddleware = (req) => {
     }
 
     if (!token) {
-        throw new Error("No authentication token provided. Please Sign in or Sign up!");
+        throw new AuthenticationError("No authentication token provided. Please Sign in or Sign up!");
+
     }
-
-
-    console.log(token);
-    
 
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         return decodedToken;
     } catch (error) {
-        throw new Error("Invalid or expired token: " + error.message);
+        throw new AuthenticationError("Invalid or expired token: " + error.message);
     }
 };
 

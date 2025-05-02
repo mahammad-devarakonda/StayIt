@@ -13,7 +13,6 @@ const login = async (_, { email, password }) => {
   }
 
   const normalizedEmail = normalizeEmail(email);
-  console.log('🔍 Attempting login for:', normalizedEmail);
 
   const user = await User.findOne({ email: normalizedEmail });
   if (!user) {
@@ -24,9 +23,7 @@ const login = async (_, { email, password }) => {
   if (!isPasswordValid) {
     throw new AuthenticationError("Invalid credentials");
   }
-
   const otp = genrateOTP();
-
   try {
     await redis.set(`otp:${normalizedEmail}`, otp, { EX: 300 }); 
   } catch (error) {
