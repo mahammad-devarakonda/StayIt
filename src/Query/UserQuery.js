@@ -3,13 +3,9 @@ const Connections=require("../model/Connections")
 const Post=require('../model/Posts')
 const mongoose = require("mongoose");
 
-
-
-const user = async (_, { id }) => {
-
-    
+const user = async (_, { id ,email }) => {
     try {
-        const user = await User.findById(id)
+        const user = id ? await User.findById(id) : email ? await User.findOne({ email: email }) : null;
         const posts = await Post.find({ userId: user });
         
         const connection = await Connections.find({

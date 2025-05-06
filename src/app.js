@@ -27,6 +27,11 @@ const startServer = async () => {
   app.use(express.json());
   app.use(cookieParser());
   app.use(helmet()); 
+  app.get("/check-auth", (req, res) => {
+    if (req.user) return res.sendStatus(200);
+    return res.sendStatus(401);
+  });
+  
 
   
 

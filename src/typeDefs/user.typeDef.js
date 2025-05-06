@@ -49,7 +49,7 @@ const usertypeDef = gql`
 
     type Query {
         users : [User],
-        user(id: ID!): UserPostsResponse,
+        user(id: ID, email: String): UserPostsResponse,
         UserPosts: UserPostsResponse!
         feed:[FeedUserResponce!]!
         MyConnections(id: ID!):[User]

@@ -21,7 +21,11 @@ const verifyOTP = async (_, { email, otp }, { res }) => {
         expiresIn: "7d", // from 24h to 7d
       });
       
-      res.cookie('authToken', token, { httpOnly: true, sameSite: "lax" });
+      res.cookie('authToken', token, { 
+        httpOnly: true, 
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+      });
   
       await redis.del(`otp:${email}`);
       return { message: "OTP verified successfully!", token, user };
