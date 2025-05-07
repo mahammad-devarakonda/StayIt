@@ -51,7 +51,7 @@ const usertypeDef = gql`
         users : [User],
         user(id: ID, email: String): UserPostsResponse,
         UserPosts: UserPostsResponse!
-        feed:[FeedUserResponce!]!
+        feed(page: Int!, limit: Int!):[FeedUserResponce!]!
         MyConnections(id: ID!):[User]
         chat(id:ID!):chatResponce
         Me:UserPostsResponse

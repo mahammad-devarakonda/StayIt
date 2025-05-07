@@ -1,22 +1,27 @@
-const User = require('../model/User')
-const Connection = require('../model/Connections')
+const User = require('../model/User');
+const Connection = require('../model/Connections');
 
-const feed = async (_, __, context) => {
+const feed = async (_, { page = 1, limit = 20 }, context) => {
     const loginUser = context?.user?.userId;
+
+    // Calculate how many users to skip
+    const skip = (page - 1) * limit;
 
     const users = await User.find(
         { _id: { $ne: loginUser } },
         "_id userName avatar bio posts"
-    ).populate({
+    )
+    .populate({
         path: "posts",
         options: { sort: { createdAt: -1 } },
-    });
+    })
+    .skip(skip)
+    .limit(limit);
 
     const ConnectionData = await Connection.find({
         fromUser: loginUser,
         toUser: { $in: users.map(user => user?._id) }
-    })
-
+    });
 
     const connectionMap = new Map();
     ConnectionData.forEach(conn => {
@@ -36,12 +41,10 @@ const feed = async (_, __, context) => {
                 content: post.content || "",
                 imageURL: post.imageURL || "",
             })),
+            createdAt: user.createdAt || new Date().toISOString(),  
         }));
 
     return feedData;
+};
 
-
-}
-
-
-module.exports = feed
+module.exports = feed;
