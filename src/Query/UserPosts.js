@@ -1,3 +1,5 @@
+const User = require("../model/Posts")
+const Post=require("../model/Posts")
 
 const UserPosts = async (_, __, context) => {
     const userID = context.user.userId

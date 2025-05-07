@@ -7,6 +7,7 @@ const UserPosts=require('../Query/UserPosts')
 const feed=require('../Query/FeedQuery')
 const MyConnections=require('../Query/MyConnectionsQuery')
 const chat=require('../Query/ChatQuery')
+const Me=require("../Query/MeQuery")
 
 const userResolver = {
 
@@ -16,6 +17,7 @@ const userResolver = {
     feed,
     MyConnections,
     chat,
+    Me
   },
 
   Mutation: {

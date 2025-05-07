@@ -54,6 +54,7 @@ const usertypeDef = gql`
         feed:[FeedUserResponce!]!
         MyConnections(id: ID!):[User]
         chat(id:ID!):chatResponce
+        Me:UserPostsResponse
     }
     type AuthPayload {
         message:String!

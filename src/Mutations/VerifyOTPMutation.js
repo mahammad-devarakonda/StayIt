@@ -5,7 +5,10 @@ const User=require('../model/User')
 const verifyOTP = async (_, { email, otp }, { res }) => {
 
     const user = await User.findOne({ email });
-  
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
     try {
       const storedOtp = await redis.get(`otp:${email}`);
       
@@ -23,9 +26,11 @@ const verifyOTP = async (_, { email, otp }, { res }) => {
       
       res.cookie('authToken', token, { 
         httpOnly: true, 
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: "None",
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000
       });
+      
   
       await redis.del(`otp:${email}`);
       return { message: "OTP verified successfully!", token, user };

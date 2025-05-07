@@ -18,7 +18,13 @@ const createGraphQLServer = async (app, io) => {
   });
 
   await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
+  apolloServer.applyMiddleware({ 
+    app,
+    cors: {
+    origin: 'http://localhost:5173',  // Frontend URL
+    credentials: true,               // Allow credentials (cookies, etc.)
+  }
+  });
   console.log(`🚀 Apollo Server ready at /graphql`);
 };
 

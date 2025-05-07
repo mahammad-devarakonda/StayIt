@@ -16,25 +16,24 @@ const startServer = async () => {
   const PORT = process.env.PORT || 3001;
 
   app.use(graphqlUploadExpress());
-
-  app.use(
-    cors({
-      origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
-      credentials: true,
-    })
-  );
-
   app.use(express.json());
   app.use(cookieParser());
-  app.use(helmet()); 
-  app.get("/check-auth", (req, res) => {
-    if (req.user) return res.sendStatus(200);
-    return res.sendStatus(401);
+  app.use(helmet({
+    crossOriginResourcePolicy: false,
+  })); 
+  
+/*   app.use((req, res, next) => {
+    console.log("Request Body:", req.body);
+    next();
   });
-  
 
-  
 
+  app.use((req, res, next) => {
+    console.log("Cookies:", req.cookies);
+    next();
+  }); */
+  
+  
   try {
     await connectDB();
     const server = http.createServer(app);
