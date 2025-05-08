@@ -16,18 +16,31 @@ cron.schedule('0 8 * * *', async () => {
         }
     }).populate("fromUser toUser");
 
-    const emailsToSend = [];
+    const emailsToSend = {};
 
     for (const request of pendingRequests) {
-        const toEmail = request.toUser?.email;
-        const fromUserName = request.fromUser?.name || 'Someone';
+        const toEmail = request?.toUser?.email;
+        const toUserName = request?.toUser?.userName;
+        const fromUserName = request?.fromUser?.userName;
 
         if (toEmail) {
-            emailsToSend.push(sendNotificationEmail(toEmail, fromUserName));
+            if (!emailsToSend[toEmail]) {
+                emailsToSend[toEmail] = {
+                    toUserName,
+                    fromUserNames: []
+                };
+            }
+            emailsToSend[toEmail].fromUserNames.push(fromUserName);
         }
     }
 
-    await Promise.all(emailsToSend);
+    const emailPromises = Object.keys(emailsToSend).map(async (email) => {
+        const { toUserName, fromUserNames } = emailsToSend[email];
+        const fromUserNamesList = fromUserNames.join(', '); 
+        return sendNotificationEmail(email, fromUserNamesList, toUserName);
+    });
+
+    await Promise.all(emailPromises);
 
 }, {
     scheduled: true,
