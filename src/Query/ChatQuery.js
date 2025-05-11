@@ -14,8 +14,6 @@ const chat = async (_, { id }, context) => {
             participants: { $all: [loginUser, id] },
         }).lean();
 
-
-
         if (!chat) {
             console.error("Chat not found for ID:", id);
             throw new Error("Chat not found!");

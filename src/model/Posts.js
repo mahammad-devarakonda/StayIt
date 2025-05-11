@@ -4,7 +4,11 @@ const postSchema = new mongoose.Schema({
   content: { type: String, required: true },
   imageURL: { type: String },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
-},{ timestamps: true });
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    required: true, ref: 'User'
+  },]
+}, { timestamps: true });
 
 
 postSchema.post("findOneAndDelete", async function (doc) {

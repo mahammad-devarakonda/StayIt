@@ -8,6 +8,7 @@ const feed=require('../Query/FeedQuery')
 const MyConnections=require('../Query/MyConnectionsQuery')
 const chat=require('../Query/ChatQuery')
 const Me=require("../Query/MeQuery")
+const LikeMutation=require("../Mutations/LikeMutation")
 
 const userResolver = {
 
@@ -25,6 +26,7 @@ const userResolver = {
     register,
     verifyOTP,
     addPost,
+    LikeMutation
   }
 
 }

@@ -11,10 +11,11 @@ const usertypeDef = gql`
     }
 
     type Post {
-        id:ID!,
-        content: String!
+        id:ID,
+        content: String
         description:String
         imageURL: String!
+        likes:[User!]!
     }
 
     type UserPostsResponse {
@@ -92,6 +93,7 @@ const usertypeDef = gql`
         verifyOTP(email:String!,otp:String!):AuthPayload
         getSignedUrl(filename: String!, fileType: String!): SignedUrlResponse!
         addPost(file: Upload!, content: String!): FileResponse!
+        LikeMutation(postID:ID!):Post
     }
 `
 

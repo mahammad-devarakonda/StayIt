@@ -3,20 +3,22 @@ const Connection = require('../model/Connections');
 
 const feed = async (_, { page = 1, limit = 20 }, context) => {
     const loginUser = context?.user?.userId;
-
-    // Calculate how many users to skip
     const skip = (page - 1) * limit;
 
     const users = await User.find(
         { _id: { $ne: loginUser } },
         "_id userName avatar bio posts"
     )
-    .populate({
-        path: "posts",
-        options: { sort: { createdAt: -1 } },
-    })
-    .skip(skip)
-    .limit(limit);
+        .populate({
+            path: "posts",
+            options: { sort: { createdAt: -1 } },
+            populate: {
+                path: "likes",
+                select: "userName avatar",
+            }
+        })
+        .skip(skip)
+        .limit(limit);
 
     const ConnectionData = await Connection.find({
         fromUser: loginUser,
@@ -40,8 +42,13 @@ const feed = async (_, { page = 1, limit = 20 }, context) => {
                 id: post._id ? post._id.toString() : "",
                 content: post.content || "",
                 imageURL: post.imageURL || "",
+                likes: (post.likes || []).map(likeUserId => ({
+                    id: likeUserId.toString(),
+                    userName: likeUserId?.userName || "Unknown",
+                    avatar: likeUserId?.avatar || "",
+                })),
             })),
-            createdAt: user.createdAt || new Date().toISOString(),  
+            createdAt: user.createdAt || new Date().toISOString(),
         }));
 
     return feedData;
