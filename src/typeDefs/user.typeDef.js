@@ -16,6 +16,7 @@ const usertypeDef = gql`
         description:String
         imageURL: String!
         likes:[User!]!
+        createdAt:String!
     }
 
     type UserPostsResponse {

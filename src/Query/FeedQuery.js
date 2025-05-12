@@ -47,11 +47,19 @@ const feed = async (_, { page = 1, limit = 20 }, context) => {
                     userName: likeUserId?.userName || "Unknown",
                     avatar: likeUserId?.avatar || "",
                 })),
+                createdAt: post.createdAt
             })),
-            createdAt: user.createdAt || new Date().toISOString(),
+            createdAt: user.createdAt
         }));
 
+
+    console.log(feedData);
+
+
     return feedData;
+
+
+
 };
 
 module.exports = feed;
