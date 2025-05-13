@@ -22,7 +22,7 @@ const startServer = async () => {
     crossOriginResourcePolicy: false,
   })); 
   
-  app.use((req, res, next) => {
+/*   app.use((req, res, next) => {
     console.log("Request Body:", req.body);
     next();
   });
@@ -32,7 +32,7 @@ const startServer = async () => {
     console.log("Cookies:", req.cookies);
     next();
   });
-  
+   */
   
   try {
     await connectDB();

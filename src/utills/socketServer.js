@@ -1,5 +1,5 @@
 const socketIO = require("socket.io");
-const Chat = require('../model/Chat');
+const Chat = require("../model/Chat");
 
 const createSocketServer = (server) => {
   const io = socketIO(server, {
@@ -13,81 +13,70 @@ const createSocketServer = (server) => {
   const users = {};
 
   io.on("connection", (socket) => {
-    socket.on("joinChat", (data) => {
-      const { userName, ChatUser, LoginUser } = data;
-      if (!userName || !ChatUser || !LoginUser) {
-        console.error("❌ Missing parameters in joinChat event:", data);
-        return;
-      }
-
-      if (ChatUser === LoginUser) {
-        console.error("❌ A user cannot chat with themselves.");
-        return;
+    socket.on("joinChat", ({ userName, ChatUser, LoginUser }) => {
+      if (!userName || !ChatUser || !LoginUser || ChatUser === LoginUser) {
+        return console.error("❌ Invalid joinChat event data");
       }
 
       const roomId = [ChatUser, LoginUser].sort().join("_");
       socket.join(roomId);
+      socket.roomId = roomId; 
     });
 
     socket.on("userOnline", (userId) => {
       if (!userId) return;
 
-      if (!users[userId]) {
-        users[userId] = new Set();
-      }
+      users[userId] = users[userId] || new Set();
       users[userId].add(socket.id);
 
-      console.log(`🟢 User ${userId} is online`);
       io.emit("updateUserStatus", { userId, status: "online" });
     });
 
-    // Handle Send Message
-    socket.on("sendMessage", async (data) => {
-      const { roomId, message, senderId, receiverId } = data;
-        
+    socket.on("sendMessage", async ({ roomId, message, senderId, receiverId }) => {
       if (!roomId || !message || !senderId || !receiverId) {
-        console.error("❌ Invalid sendMessage event data:", data);
-        return;
+        return console.error("❌ Invalid sendMessage payload");
       }
-    
+
       try {
         const participants = [senderId, receiverId].sort();
         let chat = await Chat.findOne({ participants });
-    
+
+        const newMsg = { senderId, text: message };
+
         if (!chat) {
-          chat = new Chat({
-            participants,
-            messages: [{ senderId, text: message }], // Fixed "messages" array name
-          });
+          chat = new Chat({ participants, messages: [newMsg] });
         } else {
-          chat.message.push({ senderId, text: message });
+          chat.message.push(newMsg);
         }
-    
+
         await chat.save();
-        socket.to(roomId).emit("receiveMessage", { message, senderId });
-    
-      } catch (error) {
-        console.error("❌ Error saving message:", error);
+
+        io.to(roomId).emit("receiveMessage", {
+          ...newMsg,
+          roomId,
+          timestamp: new Date(),
+        });
+
+      } catch (err) {
+        console.error("❌ Failed to send message:", err);
       }
     });
+
     socket.on("disconnect", () => {
-      let disconnectedUserId = null;
+      let disconnectedUser = null;
 
       for (const [userId, sockets] of Object.entries(users)) {
-        if (sockets.has(socket.id)) {
-          sockets.delete(socket.id);
-
+        if (sockets.delete(socket.id)) {
           if (sockets.size === 0) {
-            disconnectedUserId = userId;
+            disconnectedUser = userId;
             delete users[userId];
           }
           break;
         }
       }
 
-      if (disconnectedUserId) {
-        console.log(`🔴 User ${disconnectedUserId} is offline`);
-        io.emit("updateUserStatus", { userId: disconnectedUserId, status: "offline" });
+      if (disconnectedUser) {
+        io.emit("updateUserStatus", { userId: disconnectedUser, status: "offline" });
       }
     });
   });
